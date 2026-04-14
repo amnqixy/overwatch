@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>솔저: 76 에임 트레이너</title>
     <style>
-        /* 트랙패드 스크롤 및 텍스트 선택 완벽 차단 */
+        /* 트랙패드 제스처 및 스크롤 완벽 차단 */
         body { 
             margin: 0; 
             overflow: hidden; 
@@ -13,15 +13,18 @@
             font-family: 'Arial', sans-serif; 
             user-select: none; 
             -webkit-user-select: none; 
-            touch-action: none; 
+            touch-action: none; /* 중요: 브라우저 기본 터치/트랙패드 액션 무시 */
         }
         
         /* 시작 화면 */
         #blocker { position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
-        #instructions { text-align: center; cursor: pointer; background: rgba(0,0,0,0.8); padding: 40px; border-radius: 10px; border: 2px solid #ff9900; }
+        #instructions { text-align: center; cursor: pointer; background: rgba(0,0,0,0.8); padding: 40px; border-radius: 10px; border: 2px solid #ff9900; position: relative; }
         #instructions h1 { margin-top: 0; color: #ff9900; font-size: 36px; }
         #instructions p { font-size: 18px; line-height: 1.6; }
         
+        /* 버전 표시 */
+        #version { position: absolute; bottom: -30px; right: 0; color: #888; font-size: 14px; font-weight: bold; }
+
         /* 크로스헤어 */
         #crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; z-index: 10; }
         .ch-line { position: absolute; background-color: #00ff00; }
@@ -33,9 +36,7 @@
 
         /* HUD UI */
         #hud { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        
         #top-ui { position: absolute; top: 20px; left: 0; width: 100%; text-align: center; color: white; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 0 #000; }
-        
         #health-ui { position: absolute; bottom: 30px; left: 30px; }
         #health-bar-bg { width: 300px; height: 20px; background: rgba(0,0,0,0.5); border: 2px solid #fff; transform: skewX(-15deg); }
         #health-bar { width: 100%; height: 100%; background: #ffffff; transition: width 0.2s, background 0.2s; }
@@ -73,6 +74,7 @@
                 <b>[R]</b> - 나선 로켓 (광역 피해)<br>
                 <b>[Q]</b> - 전술 조준경 (자동 에임 - 게이지 100%시)
             </p>
+            <div id="version">v1.2 (iPadOS Patch)</div>
         </div>
     </div>
 
@@ -108,28 +110,15 @@
     <div id="enemy-huds"></div>
 
 <script>
-    // ============================================================================
-    // 게임 전역 변수 및 설정
-    // ============================================================================
     let camera, scene, renderer;
     let clock = new THREE.Clock();
     
     let player = {
-        height: 1.6,
-        speed: 10,
-        sprintMultiplier: 1.7,
-        velocity: new THREE.Vector3(),
-        direction: new THREE.Vector3(),
-        canJump: false,
-        hp: 200,
-        maxHp: 200,
-        ultGauge: 0,
-        isSprinting: false,
-        isShooting: false,
-        lastFireTime: 0,
-        fireRate: 0.1,
-        ultActive: false,
-        ultTimer: 0
+        height: 1.6, speed: 10, sprintMultiplier: 1.7,
+        velocity: new THREE.Vector3(), direction: new THREE.Vector3(),
+        canJump: false, hp: 200, maxHp: 200, ultGauge: 0,
+        isSprinting: false, isShooting: false,
+        lastFireTime: 0, fireRate: 0.1, ultActive: false, ultTimer: 0
     };
 
     let cooldowns = { E: { current: 0, max: 15 }, R: { current: 0, max: 6 } };
@@ -164,6 +153,8 @@
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        // iPadOS 스크롤 방지를 위해 캔버스에 직접 스타일 적용
+        renderer.domElement.style.touchAction = 'none';
         document.body.appendChild(renderer.domElement);
 
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
@@ -173,10 +164,6 @@
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
         dirLight.position.set(-50, 100, 50);
         dirLight.castShadow = true;
-        dirLight.shadow.camera.top = 100;
-        dirLight.shadow.camera.bottom = -100;
-        dirLight.shadow.camera.left = -100;
-        dirLight.shadow.camera.right = 100;
         scene.add(dirLight);
 
         buildMap();
@@ -185,22 +172,25 @@
         document.addEventListener('keydown', onKeyDown);
         document.addEventListener('keyup', onKeyUp);
         
-        // 아이패드 호환성을 위해 pointer 이벤트를 사용합니다.
+        // 아이패드 호환: 사격은 pointer, 시점 이동은 mousemove로 교차 사용
         document.addEventListener('pointerdown', onPointerDown);
         document.addEventListener('pointerup', onPointerUp);
-        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('mousemove', onMouseMove, { passive: false });
 
-        // 포인터 락 요청 (WebKit 호환성 추가)
-        instructions.addEventListener('click', () => {
+        // 포인터 락 요청 로직 (iPadOS 강제 적용)
+        instructions.addEventListener('click', async () => {
             const el = document.body;
-            if (el.requestPointerLock) {
-                el.requestPointerLock();
-            } else if (el.webkitRequestPointerLock) {
-                el.webkitRequestPointerLock();
+            try {
+                if (el.requestPointerLock) {
+                    await el.requestPointerLock();
+                } else if (el.webkitRequestPointerLock) {
+                    el.webkitRequestPointerLock();
+                }
+            } catch (error) {
+                console.warn("Pointer Lock promise rejected, applying fallback.", error);
             }
         });
 
-        // 포인터 락 상태 감지 함수
         const handlePointerLockChange = () => {
             const isLocked = document.pointerLockElement === document.body || 
                              document.webkitPointerLockElement === document.body;
@@ -249,26 +239,26 @@
     let euler = new THREE.Euler(0, 0, 0, 'YXZ');
     const PI_2 = Math.PI / 2;
 
-    function onPointerMove(event) {
+    // iPadOS 트랙패드 시점 이동은 mousemove가 movementX를 더 잘 잡아냅니다.
+    function onMouseMove(event) {
         const isLocked = document.pointerLockElement === document.body || document.webkitPointerLockElement === document.body;
         if (!isLocked) return;
         
-        // 아이패드 WebKit 지원을 위한 movement 보정
-        const movementX = event.movementX || event.webkitMovementX || 0;
-        const movementY = event.movementY || event.webkitMovementY || 0;
+        event.preventDefault(); // 추가적인 스크롤 방지
+
+        const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+        const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
         euler.setFromQuaternion(camera.quaternion);
-        euler.y -= movementX * 0.002;
-        euler.x -= movementY * 0.002;
+        euler.y -= movementX * 0.003; // 감도 조절 (0.002 -> 0.003)
+        euler.x -= movementY * 0.003;
         euler.x = Math.max(-PI_2, Math.min(PI_2, euler.x));
         camera.quaternion.setFromEuler(euler);
     }
 
     function onPointerDown(event) {
         const isLocked = document.pointerLockElement === document.body || document.webkitPointerLockElement === document.body;
-        if (isLocked) {
-            player.isShooting = true;
-        }
+        if (isLocked) player.isShooting = true;
     }
 
     function onPointerUp(event) {
