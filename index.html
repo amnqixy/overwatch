@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>솔저: 76 에임 트레이너</title>
     <style>
-        /* 트랙패드 제스처 및 스크롤 완벽 차단 */
         body { 
             margin: 0; 
             overflow: hidden; 
@@ -13,16 +12,29 @@
             font-family: 'Arial', sans-serif; 
             user-select: none; 
             -webkit-user-select: none; 
-            touch-action: none; /* 중요: 브라우저 기본 터치/트랙패드 액션 무시 */
+            touch-action: none; 
         }
         
-        /* 시작 화면 */
+        /* 시작 화면을 강제로 덮는 블로커 */
         #blocker { position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
-        #instructions { text-align: center; cursor: pointer; background: rgba(0,0,0,0.8); padding: 40px; border-radius: 10px; border: 2px solid #ff9900; position: relative; }
+        
+        /* div 대신 실제 button 요소로 변경하여 클릭 무시 방지 */
+        #instructions { 
+            cursor: pointer; 
+            background: rgba(0,0,0,0.8); 
+            padding: 40px; 
+            border-radius: 10px; 
+            border: 2px solid #ff9900; 
+            position: relative; 
+            color: white;
+            font-family: inherit;
+            display: block;
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.3);
+        }
+        #instructions:active { background: rgba(50,50,50,0.9); }
         #instructions h1 { margin-top: 0; color: #ff9900; font-size: 36px; }
         #instructions p { font-size: 18px; line-height: 1.6; }
         
-        /* 버전 표시 */
         #version { position: absolute; bottom: -30px; right: 0; color: #888; font-size: 14px; font-weight: bold; }
 
         /* 크로스헤어 */
@@ -62,20 +74,20 @@
 <body>
 
     <div id="blocker">
-        <div id="instructions">
+        <button id="instructions">
             <h1>SOLDIER: 76 AIM TRAINER</h1>
             <p>
-                <b>트랙패드 클릭</b>으로 시작 (포인터 락)<br><br>
+                <b>이곳을 클릭하여 시작하세요!</b><br><br>
                 <b>[W, A, S, D]</b> - 이동<br>
                 <b>[Space]</b> - 점프<br>
-                <b>[트랙패드 홀드]</b> - 펄스 소총 (자동 연사)<br>
-                <b>[좌 Shift]</b> - 질주 (사격 시 해제)<br>
-                <b>[E]</b> - 생체장 (체력 회복)<br>
-                <b>[R]</b> - 나선 로켓 (광역 피해)<br>
-                <b>[Q]</b> - 전술 조준경 (자동 에임 - 게이지 100%시)
+                <b>[마우스/트랙패드 클릭]</b> - 펄스 소총 사격<br>
+                <b>[좌 Shift]</b> - 질주<br>
+                <b>[E]</b> - 생체장<br>
+                <b>[R]</b> - 나선 로켓<br>
+                <b>[Q]</b> - 전술 조준경
             </p>
-            <div id="version">v1.2 (iPadOS Patch)</div>
-        </div>
+            <div id="version">v1.3 (iPadOS Trackpad Click Fix)</div>
+        </button>
     </div>
 
     <div id="crosshair">
@@ -113,6 +125,8 @@
     let camera, scene, renderer;
     let clock = new THREE.Clock();
     
+    let isGameRunning = false; // 게임 상태 관리 변수 추가
+
     let player = {
         height: 1.6, speed: 10, sprintMultiplier: 1.7,
         velocity: new THREE.Vector3(), direction: new THREE.Vector3(),
@@ -153,7 +167,6 @@
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        // iPadOS 스크롤 방지를 위해 캔버스에 직접 스타일 적용
         renderer.domElement.style.touchAction = 'none';
         document.body.appendChild(renderer.domElement);
 
@@ -172,13 +185,21 @@
         document.addEventListener('keydown', onKeyDown);
         document.addEventListener('keyup', onKeyUp);
         
-        // 아이패드 호환: 사격은 pointer, 시점 이동은 mousemove로 교차 사용
         document.addEventListener('pointerdown', onPointerDown);
         document.addEventListener('pointerup', onPointerUp);
         document.addEventListener('mousemove', onMouseMove, { passive: false });
 
-        // 포인터 락 요청 로직 (iPadOS 강제 적용)
-        instructions.addEventListener('click', async () => {
+        // 시작 버튼 이벤트: pointerdown, click, touchstart 모두 걸어서 확실히 잡습니다.
+        const startGame = async (e) => {
+            if(isGameRunning) return; // 이미 실행중이면 무시
+            
+            e.preventDefault();
+            
+            // 1. 클릭 즉시 화면을 무조건 가립니다 (기다리지 않음)
+            blocker.style.display = 'none';
+            isGameRunning = true;
+
+            // 2. 포인터 락 요청 (실패하더라도 게임은 이미 보이게 됨)
             const el = document.body;
             try {
                 if (el.requestPointerLock) {
@@ -187,17 +208,21 @@
                     el.webkitRequestPointerLock();
                 }
             } catch (error) {
-                console.warn("Pointer Lock promise rejected, applying fallback.", error);
+                console.warn("포인터 락 실패. 하지만 게임은 계속 진행됩니다.", error);
             }
-        });
+        };
 
+        instructions.addEventListener('pointerdown', startGame);
+        instructions.addEventListener('click', startGame);
+        instructions.addEventListener('touchstart', startGame);
+
+        // ESC 눌렀을 때 화면 다시 띄우기
         const handlePointerLockChange = () => {
             const isLocked = document.pointerLockElement === document.body || 
                              document.webkitPointerLockElement === document.body;
-            if (isLocked) {
-                blocker.style.display = 'none';
-            } else {
+            if (!isLocked) {
                 blocker.style.display = 'flex';
+                isGameRunning = false;
                 player.isShooting = false;
             }
         };
@@ -239,26 +264,26 @@
     let euler = new THREE.Euler(0, 0, 0, 'YXZ');
     const PI_2 = Math.PI / 2;
 
-    // iPadOS 트랙패드 시점 이동은 mousemove가 movementX를 더 잘 잡아냅니다.
     function onMouseMove(event) {
-        const isLocked = document.pointerLockElement === document.body || document.webkitPointerLockElement === document.body;
-        if (!isLocked) return;
+        // 포인터 락 여부와 상관없이 게임이 시작되었으면 카메라 회전 허용
+        if (!isGameRunning) return; 
         
-        event.preventDefault(); // 추가적인 스크롤 방지
+        event.preventDefault(); 
 
         const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
         const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
         euler.setFromQuaternion(camera.quaternion);
-        euler.y -= movementX * 0.003; // 감도 조절 (0.002 -> 0.003)
+        euler.y -= movementX * 0.003; 
         euler.x -= movementY * 0.003;
         euler.x = Math.max(-PI_2, Math.min(PI_2, euler.x));
         camera.quaternion.setFromEuler(euler);
     }
 
     function onPointerDown(event) {
-        const isLocked = document.pointerLockElement === document.body || document.webkitPointerLockElement === document.body;
-        if (isLocked) player.isShooting = true;
+        if (isGameRunning && event.target !== instructions) {
+            player.isShooting = true;
+        }
     }
 
     function onPointerUp(event) {
@@ -283,7 +308,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // --- 스킬 및 사격 로직 ---
     function fireRifle() {
         if (!player.isShooting) return;
         player.isSprinting = false; 
@@ -328,11 +352,9 @@
         const geo = new THREE.CylinderGeometry(4, 4, 0.2, 32);
         const mat = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.5 });
         const field = new THREE.Mesh(geo, mat);
-        
         field.position.copy(camera.position);
         field.position.y = 0.1;
         scene.add(field);
-        
         bioticFields.push({ mesh: field, timer: 5 });
         cooldowns.E.current = cooldowns.E.max;
         updateCooldownUI();
@@ -343,7 +365,6 @@
         const geo = new THREE.SphereGeometry(0.3, 8, 8);
         const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const rocket = new THREE.Mesh(geo, mat);
-        
         rocket.position.copy(camera.position);
         
         let dir = new THREE.Vector3();
@@ -354,10 +375,8 @@
         } else {
             camera.getWorldDirection(dir);
         }
-        
         scene.add(rocket);
         projectiles.push({ mesh: rocket, velocity: dir.multiplyScalar(40), active: true });
-        
         cooldowns.R.current = cooldowns.R.max;
         updateCooldownUI();
     }
@@ -374,7 +393,6 @@
     function getNearestEnemyInSight() {
         let bestTarget = null;
         let maxDot = 0.85; 
-        
         let camDir = new THREE.Vector3();
         camera.getWorldDirection(camDir);
 
@@ -403,7 +421,6 @@
         const sphere = new THREE.Mesh(geo, mat);
         sphere.position.copy(position);
         scene.add(sphere);
-        
         particles.push({ mesh: sphere, life: 1.0, maxLife: 1.0, scaleRate: 5 });
 
         if (damage > 0) {
@@ -414,7 +431,6 @@
         }
     }
 
-    // --- 적 로직 ---
     function spawnEnemy() {
         const geo = new THREE.CapsuleGeometry(0.8, 1.5, 4, 16);
         const mat = new THREE.MeshStandardMaterial({ color: 0xff3333, roughness: 0.4 });
@@ -498,8 +514,9 @@
         });
     }
 
-    // --- 메인 루프 ---
     function updatePhysics(dt) {
+        if(!isGameRunning) return;
+
         player.direction.z = Number(keys['KeyW']) - Number(keys['KeyS']);
         player.direction.x = Number(keys['KeyD']) - Number(keys['KeyA']);
         player.direction.normalize();
@@ -547,11 +564,13 @@
         requestAnimationFrame(animate);
         
         const dt = Math.min(clock.getDelta(), 0.1); 
-        gameTime += dt;
-
-        let min = Math.floor(gameTime / 60);
-        let sec = Math.floor(gameTime % 60);
-        document.getElementById('timer').innerText = `${min < 10 ? '0':''}${min}:${sec < 10 ? '0':''}${sec}`;
+        
+        if(isGameRunning) {
+            gameTime += dt;
+            let min = Math.floor(gameTime / 60);
+            let sec = Math.floor(gameTime % 60);
+            document.getElementById('timer').innerText = `${min < 10 ? '0':''}${min}:${sec < 10 ? '0':''}${sec}`;
+        }
 
         updatePhysics(dt);
 
@@ -620,11 +639,10 @@
             }
         });
 
-        updateEnemies(dt);
+        if(isGameRunning) updateEnemies(dt);
         renderer.render(scene, camera);
     }
 
-    // --- UI 업데이트 ---
     function updateHealthUI() {
         let percent = (player.hp / player.maxHp) * 100;
         document.getElementById('health-bar').style.width = percent + '%';
