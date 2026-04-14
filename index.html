@@ -15,27 +15,14 @@
             touch-action: none; 
         }
         
-        /* 시작 화면을 강제로 덮는 블로커 */
-        #blocker { position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
-        
-        /* div 대신 실제 button 요소로 변경하여 클릭 무시 방지 */
-        #instructions { 
-            cursor: pointer; 
-            background: rgba(0,0,0,0.8); 
-            padding: 40px; 
-            border-radius: 10px; 
-            border: 2px solid #ff9900; 
-            position: relative; 
-            color: white;
-            font-family: inherit;
-            display: block;
-            box-shadow: 0 0 20px rgba(255, 153, 0, 0.3);
+        /* 시작 화면 */
+        #blocker { position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
+        #start-btn { 
+            padding: 20px 40px; font-size: 24px; font-weight: bold; color: white; background: #ff9900; 
+            border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 153, 0, 0.4);
         }
-        #instructions:active { background: rgba(50,50,50,0.9); }
-        #instructions h1 { margin-top: 0; color: #ff9900; font-size: 36px; }
-        #instructions p { font-size: 18px; line-height: 1.6; }
-        
-        #version { position: absolute; bottom: -30px; right: 0; color: #888; font-size: 14px; font-weight: bold; }
+        #start-btn:active { transform: scale(0.95); }
+        #version { position: absolute; bottom: 20px; color: #888; font-size: 14px; font-weight: bold; }
 
         /* 크로스헤어 */
         #crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; transform: translate(-50%, -50%); pointer-events: none; z-index: 10; }
@@ -47,47 +34,55 @@
         .ch-dot { top: 9px; left: 9px; width: 2px; height: 2px; border-radius: 50%; }
 
         /* HUD UI */
-        #hud { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        #top-ui { position: absolute; top: 20px; left: 0; width: 100%; text-align: center; color: white; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 0 #000; }
-        #health-ui { position: absolute; bottom: 30px; left: 30px; }
-        #health-bar-bg { width: 300px; height: 20px; background: rgba(0,0,0,0.5); border: 2px solid #fff; transform: skewX(-15deg); }
-        #health-bar { width: 100%; height: 100%; background: #ffffff; transition: width 0.2s, background 0.2s; }
-        #health-text { color: white; font-size: 24px; font-weight: bold; font-style: italic; margin-bottom: 5px; text-shadow: 1px 1px 0 #000; }
-
-        #skills-ui { position: absolute; bottom: 30px; right: 30px; display: flex; gap: 15px; }
-        .skill { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 10px; position: relative; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 20px; text-shadow: 1px 1px 0 #000; overflow: hidden; }
-        .skill .key { position: absolute; top: 2px; left: 5px; font-size: 12px; color: #ffcc00; }
-        .skill .cooldown { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; font-size: 24px; color: #ff3333; }
+        #top-ui { position: absolute; top: 10px; left: 0; width: 100%; text-align: center; color: white; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #000; z-index: 5; pointer-events: none;}
         
-        #ult-ui { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); text-align: center; }
-        #ult-circle { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); color: white; font-size: 20px; font-weight: bold; position: relative; overflow: hidden; }
-        #ult-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(0, 150, 255, 0.6); transition: height 0.3s; }
-        #ult-text { position: relative; z-index: 1; }
+        #health-ui { position: absolute; top: 10px; left: 20px; z-index: 5; pointer-events: none; }
+        #health-bar-bg { width: 150px; height: 15px; background: rgba(0,0,0,0.5); border: 2px solid #fff; transform: skewX(-15deg); }
+        #health-bar { width: 100%; height: 100%; background: #ffffff; transition: width 0.2s, background 0.2s; }
+        #health-text { color: white; font-size: 16px; font-weight: bold; font-style: italic; margin-bottom: 5px; text-shadow: 1px 1px 0 #000; }
+
+        #ult-ui { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 15; }
+        #ult-btn { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #fff; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); color: white; font-size: 18px; font-weight: bold; position: relative; overflow: hidden; pointer-events: auto; touch-action: none;}
+        #ult-btn:active { transform: scale(0.9); }
+        #ult-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(0, 150, 255, 0.6); transition: height 0.3s; pointer-events: none; }
+        #ult-text { position: relative; z-index: 1; pointer-events: none; }
 
         #ult-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,100,255,0.1) 0%, rgba(0,50,255,0.4) 100%); border: 5px solid rgba(0, 150, 255, 0.8); box-sizing: border-box; display: none; z-index: 2; pointer-events: none; }
         
         #enemy-huds { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
         .enemy-hp { position: absolute; width: 40px; height: 5px; background: red; border: 1px solid black; transform: translate(-50%, -50%); display: none; }
+
+        /* 터치 컨트롤 영역 */
+        #left-zone { position: absolute; left: 0; top: 0; width: 50%; height: 100%; z-index: 10; }
+        #right-zone { position: absolute; right: 0; top: 0; width: 50%; height: 100%; z-index: 10; }
+        
+        /* 조이스틱 UI */
+        #joystick-base { position: absolute; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; pointer-events: none; z-index: 11; }
+        #joystick-knob { position: absolute; width: 50px; height: 50px; background: rgba(255,255,255,0.6); border-radius: 50%; top: 35px; left: 35px; pointer-events: none; }
+
+        /* 우측 액션 버튼들 */
+        #action-buttons { position: absolute; bottom: 20px; right: 20px; z-index: 15; display: flex; flex-direction: column; gap: 15px; align-items: flex-end; }
+        .btn-row { display: flex; gap: 15px; }
+        .action-btn { 
+            width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 14px; 
+            text-shadow: 1px 1px 0 #000; touch-action: none; position: relative; overflow: hidden;
+        }
+        .action-btn:active, .action-btn.active-toggle { background: rgba(255, 153, 0, 0.6); transform: scale(0.9); }
+        .action-btn.fire { width: 80px; height: 80px; font-size: 18px; background: rgba(255, 50, 50, 0.4); border-color: #ff3333; }
+        .action-btn.fire:active { background: rgba(255, 50, 50, 0.8); }
+        
+        .cooldown { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; font-size: 20px; color: #ff3333; pointer-events: none; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r140/three.min.js"></script>
 </head>
 <body>
 
     <div id="blocker">
-        <button id="instructions">
-            <h1>SOLDIER: 76 AIM TRAINER</h1>
-            <p>
-                <b>이곳을 클릭하여 시작하세요!</b><br><br>
-                <b>[W, A, S, D]</b> - 이동<br>
-                <b>[Space]</b> - 점프<br>
-                <b>[마우스/트랙패드 클릭]</b> - 펄스 소총 사격<br>
-                <b>[좌 Shift]</b> - 질주<br>
-                <b>[E]</b> - 생체장<br>
-                <b>[R]</b> - 나선 로켓<br>
-                <b>[Q]</b> - 전술 조준경
-            </p>
-            <div id="version">v1.3 (iPadOS Trackpad Click Fix)</div>
-        </button>
+        <h1 style="color:#ff9900; margin-bottom: 10px; font-size: 32px;">SOLDIER: 76</h1>
+        <p style="margin-bottom: 30px;">모바일 터치스크린 에디션</p>
+        <button id="start-btn">게임 시작 (터치)</button>
+        <div id="version">v2.0 (Mobile Touch Complete)</div>
     </div>
 
     <div id="crosshair">
@@ -98,23 +93,35 @@
         <div class="ch-line ch-dot"></div>
     </div>
 
-    <div id="hud">
-        <div id="top-ui">처치: <span id="score">0</span> | 시간: <span id="timer">00:00</span></div>
-        <div id="health-ui">
-            <div id="health-text">200 / 200</div>
-            <div id="health-bar-bg"><div id="health-bar"></div></div>
+    <div id="top-ui">처치: <span id="score">0</span> | 시간: <span id="timer">00:00</span></div>
+    
+    <div id="health-ui">
+        <div id="health-text">200 / 200</div>
+        <div id="health-bar-bg"><div id="health-bar"></div></div>
+    </div>
+
+    <div id="ult-ui">
+        <div id="ult-btn">
+            <div id="ult-fill"></div>
+            <div id="ult-text">0%</div>
         </div>
-        <div id="ult-ui">
-            <div id="ult-circle">
-                <div id="ult-fill"></div>
-                <div id="ult-text" id="ult-percent">0%</div>
-            </div>
-            <div style="color:white; font-weight:bold; margin-top:5px;">Q (전술 조준경)</div>
+        <div style="color:white; font-size:12px; font-weight:bold; margin-top:5px; text-shadow:1px 1px 0 #000;">궁극기</div>
+    </div>
+
+    <div id="left-zone"></div>
+    <div id="right-zone"></div>
+
+    <div id="joystick-base"><div id="joystick-knob"></div></div>
+
+    <div id="action-buttons">
+        <div class="btn-row">
+            <div class="action-btn" id="btn-shift">질주</div>
+            <div class="action-btn" id="btn-e">생체<div class="cooldown" id="cd-e"></div></div>
+            <div class="action-btn" id="btn-r">로켓<div class="cooldown" id="cd-r"></div></div>
         </div>
-        <div id="skills-ui">
-            <div class="skill" id="skill-shift"><span class="key">Shift</span>질주</div>
-            <div class="skill" id="skill-e"><span class="key">E</span>생체<div class="cooldown" id="cd-e"></div></div>
-            <div class="skill" id="skill-r"><span class="key">R</span>로켓<div class="cooldown" id="cd-r"></div></div>
+        <div class="btn-row" style="align-items: flex-end;">
+            <div class="action-btn" id="btn-jump" style="margin-right: 20px;">점프</div>
+            <div class="action-btn fire" id="btn-fire">사격</div>
         </div>
     </div>
 
@@ -124,11 +131,10 @@
 <script>
     let camera, scene, renderer;
     let clock = new THREE.Clock();
-    
-    let isGameRunning = false; // 게임 상태 관리 변수 추가
+    let isGameRunning = false; 
 
     let player = {
-        height: 1.6, speed: 10, sprintMultiplier: 1.7,
+        height: 1.6, speed: 8, sprintMultiplier: 1.8,
         velocity: new THREE.Vector3(), direction: new THREE.Vector3(),
         canJump: false, hp: 200, maxHp: 200, ultGauge: 0,
         isSprinting: false, isShooting: false,
@@ -147,12 +153,11 @@
     let score = 0;
     let gameTime = 0;
 
-    const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false, Space: false, ShiftLeft: false };
+    let euler = new THREE.Euler(0, 0, 0, 'YXZ');
+    const PI_2 = Math.PI / 2;
 
-    const blocker = document.getElementById('blocker');
-    const instructions = document.getElementById('instructions');
     const chElements = document.querySelectorAll('.ch-line');
-    
+
     init();
     animate();
 
@@ -180,55 +185,16 @@
         scene.add(dirLight);
 
         buildMap();
-
         window.addEventListener('resize', onWindowResize);
-        document.addEventListener('keydown', onKeyDown);
-        document.addEventListener('keyup', onKeyUp);
-        
-        document.addEventListener('pointerdown', onPointerDown);
-        document.addEventListener('pointerup', onPointerUp);
-        document.addEventListener('mousemove', onMouseMove, { passive: false });
 
-        // 시작 버튼 이벤트: pointerdown, click, touchstart 모두 걸어서 확실히 잡습니다.
-        const startGame = async (e) => {
-            if(isGameRunning) return; // 이미 실행중이면 무시
-            
+        // --- 모바일 전용 이벤트 바인딩 ---
+        document.getElementById('start-btn').addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            
-            // 1. 클릭 즉시 화면을 무조건 가립니다 (기다리지 않음)
-            blocker.style.display = 'none';
+            document.getElementById('blocker').style.display = 'none';
             isGameRunning = true;
+        });
 
-            // 2. 포인터 락 요청 (실패하더라도 게임은 이미 보이게 됨)
-            const el = document.body;
-            try {
-                if (el.requestPointerLock) {
-                    await el.requestPointerLock();
-                } else if (el.webkitRequestPointerLock) {
-                    el.webkitRequestPointerLock();
-                }
-            } catch (error) {
-                console.warn("포인터 락 실패. 하지만 게임은 계속 진행됩니다.", error);
-            }
-        };
-
-        instructions.addEventListener('pointerdown', startGame);
-        instructions.addEventListener('click', startGame);
-        instructions.addEventListener('touchstart', startGame);
-
-        // ESC 눌렀을 때 화면 다시 띄우기
-        const handlePointerLockChange = () => {
-            const isLocked = document.pointerLockElement === document.body || 
-                             document.webkitPointerLockElement === document.body;
-            if (!isLocked) {
-                blocker.style.display = 'flex';
-                isGameRunning = false;
-                player.isShooting = false;
-            }
-        };
-
-        document.addEventListener('pointerlockchange', handlePointerLockChange);
-        document.addEventListener('webkitpointerlockchange', handlePointerLockChange);
+        setupTouchControls();
 
         for(let i=0; i<7; i++) spawnEnemy();
     }
@@ -261,45 +227,127 @@
         }
     }
 
-    let euler = new THREE.Euler(0, 0, 0, 'YXZ');
-    const PI_2 = Math.PI / 2;
-
-    function onMouseMove(event) {
-        // 포인터 락 여부와 상관없이 게임이 시작되었으면 카메라 회전 허용
-        if (!isGameRunning) return; 
+    // --- 핵심: 터치 컨트롤 로직 ---
+    function setupTouchControls() {
+        const leftZone = document.getElementById('left-zone');
+        const rightZone = document.getElementById('right-zone');
+        const joystickBase = document.getElementById('joystick-base');
+        const joystickKnob = document.getElementById('joystick-knob');
         
-        event.preventDefault(); 
+        let moveTouchId = null;
+        let joyOrigin = { x: 0, y: 0 };
 
-        const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-        const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+        // 조이스틱 (이동)
+        leftZone.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if(!isGameRunning) return;
+            const touch = e.changedTouches[0];
+            moveTouchId = touch.identifier;
+            joyOrigin.x = touch.clientX;
+            joyOrigin.y = touch.clientY;
+            
+            joystickBase.style.display = 'block';
+            joystickBase.style.left = (joyOrigin.x - 60) + 'px';
+            joystickBase.style.top = (joyOrigin.y - 60) + 'px';
+            joystickKnob.style.transform = `translate(0px, 0px)`;
+        });
 
-        euler.setFromQuaternion(camera.quaternion);
-        euler.y -= movementX * 0.003; 
-        euler.x -= movementY * 0.003;
-        euler.x = Math.max(-PI_2, Math.min(PI_2, euler.x));
-        camera.quaternion.setFromEuler(euler);
-    }
+        leftZone.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if(!isGameRunning) return;
+            for(let touch of e.changedTouches) {
+                if(touch.identifier === moveTouchId) {
+                    let dx = touch.clientX - joyOrigin.x;
+                    let dy = touch.clientY - joyOrigin.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    let maxDist = 40; // 조이스틱 가동 범위
+                    
+                    if(distance > maxDist) {
+                        dx = (dx / distance) * maxDist;
+                        dy = (dy / distance) * maxDist;
+                    }
+                    
+                    joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+                    
+                    // 방향키 벡터로 변환 (상하 반전, 좌우)
+                    player.direction.x = dx / maxDist;
+                    player.direction.z = dy / maxDist;
+                }
+            }
+        });
 
-    function onPointerDown(event) {
-        if (isGameRunning && event.target !== instructions) {
-            player.isShooting = true;
-        }
-    }
+        const resetJoystick = (e) => {
+            for(let touch of e.changedTouches) {
+                if(touch.identifier === moveTouchId) {
+                    moveTouchId = null;
+                    joystickBase.style.display = 'none';
+                    player.direction.set(0, 0, 0);
+                }
+            }
+        };
+        leftZone.addEventListener('touchend', resetJoystick);
+        leftZone.addEventListener('touchcancel', resetJoystick);
 
-    function onPointerUp(event) {
-        player.isShooting = false;
-        chElements.forEach(el => el.style.backgroundColor = '#00ff00');
-    }
+        // 시점 이동 (에임)
+        let aimTouchId = null;
+        let lastAimX = 0, lastAimY = 0;
 
-    function onKeyDown(event) {
-        if(keys.hasOwnProperty(event.code)) keys[event.code] = true;
-        if (event.code === 'KeyE') useBioticField();
-        if (event.code === 'KeyR') useHelixRocket();
-        if (event.code === 'KeyQ') useTacticalVisor();
-    }
+        rightZone.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if(!isGameRunning) return;
+            const touch = e.changedTouches[0];
+            aimTouchId = touch.identifier;
+            lastAimX = touch.clientX;
+            lastAimY = touch.clientY;
+        });
 
-    function onKeyUp(event) {
-        if(keys.hasOwnProperty(event.code)) keys[event.code] = false;
+        rightZone.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if(!isGameRunning) return;
+            for(let touch of e.changedTouches) {
+                if(touch.identifier === aimTouchId) {
+                    let dx = touch.clientX - lastAimX;
+                    let dy = touch.clientY - lastAimY;
+                    lastAimX = touch.clientX;
+                    lastAimY = touch.clientY;
+
+                    euler.setFromQuaternion(camera.quaternion);
+                    euler.y -= dx * 0.004; // 에임 감도
+                    euler.x -= dy * 0.004;
+                    euler.x = Math.max(-PI_2, Math.min(PI_2, euler.x));
+                    camera.quaternion.setFromEuler(euler);
+                }
+            }
+        });
+
+        const resetAim = (e) => {
+            for(let touch of e.changedTouches) {
+                if(touch.identifier === aimTouchId) aimTouchId = null;
+            }
+        };
+        rightZone.addEventListener('touchend', resetAim);
+        rightZone.addEventListener('touchcancel', resetAim);
+
+        // 액션 버튼 로직
+        document.getElementById('btn-fire').addEventListener('touchstart', (e) => { e.preventDefault(); player.isShooting = true; });
+        document.getElementById('btn-fire').addEventListener('touchend', (e) => { e.preventDefault(); player.isShooting = false; chElements.forEach(el => el.style.backgroundColor = '#00ff00'); });
+        
+        document.getElementById('btn-jump').addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            if(player.canJump) { player.velocity.y += 12; player.canJump = false; }
+        });
+
+        const shiftBtn = document.getElementById('btn-shift');
+        shiftBtn.addEventListener('touchstart', (e) => { 
+            e.preventDefault();
+            player.isSprinting = !player.isSprinting; // 모바일은 토글형식으로 변경
+            if(player.isSprinting) shiftBtn.classList.add('active-toggle');
+            else shiftBtn.classList.remove('active-toggle');
+        });
+
+        document.getElementById('btn-e').addEventListener('touchstart', (e) => { e.preventDefault(); useBioticField(); });
+        document.getElementById('btn-r').addEventListener('touchstart', (e) => { e.preventDefault(); useHelixRocket(); });
+        document.getElementById('ult-btn').addEventListener('touchstart', (e) => { e.preventDefault(); useTacticalVisor(); });
     }
 
     function onWindowResize() {
@@ -310,7 +358,12 @@
 
     function fireRifle() {
         if (!player.isShooting) return;
-        player.isSprinting = false; 
+        
+        // 사격시 질주 자동 해제
+        if(player.isSprinting) {
+            player.isSprinting = false;
+            document.getElementById('btn-shift').classList.remove('active-toggle');
+        }
 
         chElements.forEach(el => el.style.backgroundColor = '#ffffff');
         setTimeout(() => { if(player.isShooting) chElements.forEach(el => el.style.backgroundColor = '#00ff00'); }, 50);
@@ -517,18 +570,14 @@
     function updatePhysics(dt) {
         if(!isGameRunning) return;
 
-        player.direction.z = Number(keys['KeyW']) - Number(keys['KeyS']);
-        player.direction.x = Number(keys['KeyD']) - Number(keys['KeyA']);
-        player.direction.normalize();
-
-        player.isSprinting = (keys['ShiftLeft'] && !player.isShooting);
         let currentSpeed = player.isSprinting ? player.speed * player.sprintMultiplier : player.speed;
 
         let moveVec = new THREE.Vector3();
+        // 조이스틱 방향값 적용
         if (player.direction.z !== 0 || player.direction.x !== 0) {
             let angle = Math.atan2(player.direction.x, player.direction.z);
-            let euler = new THREE.Euler(0, camera.rotation.y + angle, 0, 'YXZ');
-            moveVec.set(0, 0, -1).applyEuler(euler).multiplyScalar(currentSpeed * dt);
+            let moveEuler = new THREE.Euler(0, camera.rotation.y + angle, 0, 'YXZ');
+            moveVec.set(0, 0, -1).applyEuler(moveEuler).multiplyScalar(currentSpeed * dt);
         }
 
         let nextPos = camera.position.clone().add(moveVec);
@@ -543,11 +592,6 @@
         if (!collision) {
             camera.position.x = nextPos.x;
             camera.position.z = nextPos.z;
-        }
-
-        if (keys['Space'] && player.canJump) {
-            player.velocity.y += 12;
-            player.canJump = false;
         }
 
         player.velocity.y += gravity * dt;
@@ -656,11 +700,11 @@
         document.getElementById('ult-fill').style.height = percent + '%';
         
         if (percent >= 100) {
-            document.getElementById('ult-circle').style.borderColor = '#00aaff';
-            document.getElementById('ult-circle').style.boxShadow = '0 0 15px #00aaff';
+            document.getElementById('ult-btn').style.borderColor = '#00aaff';
+            document.getElementById('ult-btn').style.boxShadow = '0 0 15px #00aaff';
         } else {
-            document.getElementById('ult-circle').style.borderColor = '#fff';
-            document.getElementById('ult-circle').style.boxShadow = 'none';
+            document.getElementById('ult-btn').style.borderColor = '#fff';
+            document.getElementById('ult-btn').style.boxShadow = 'none';
         }
     }
 
